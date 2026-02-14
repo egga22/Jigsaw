@@ -1,0 +1,95 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  text-align: center;
+  padding: 1.5rem 1rem 1rem;
+}
+
+.app-header h1 {
+  font-size: 2.2rem;
+  background: linear-gradient(135deg, #6c63ff, #e056a0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.3rem;
+}
+
+.subtitle {
+  color: #888;
+  font-size: 1rem;
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.game-container {
+  width: 100%;
+  max-width: 850px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.board-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.completion-stats {
+  margin-top: 1rem;
+  text-align: center;
+  color: #ccc;
+  font-size: 1.1rem;
+  animation: fadeIn 0.5s ease;
+}
+
+.completion-stats strong {
+  color: #4cd137;
+}
+
+.play-again-btn {
+  margin-top: 0.75rem;
+  padding: 0.7rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #6c63ff 0%, #4834d4 100%);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.play-again-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(108, 99, 255, 0.4);
+}
+
+.app-footer {
+  text-align: center;
+  padding: 1rem;
+  color: #555;
+  font-size: 0.85rem;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

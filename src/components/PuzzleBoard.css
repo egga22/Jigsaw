@@ -1,0 +1,88 @@
+.puzzle-board-wrapper {
+  position: relative;
+  display: inline-block;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.puzzle-canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  background: rgba(20, 20, 35, 0.95);
+  cursor: grab;
+  touch-action: none;
+  border-radius: 14px;
+}
+
+.puzzle-canvas:active {
+  cursor: grabbing;
+}
+
+.puzzle-canvas.completed {
+  cursor: default;
+  box-shadow: 0 0 30px rgba(76, 209, 55, 0.3);
+}
+
+.completion-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  border-radius: 14px;
+  animation: fadeIn 0.5s ease;
+}
+
+.completion-content {
+  text-align: center;
+  color: white;
+  animation: popIn 0.5s ease;
+}
+
+.completion-icon {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.completion-content h2 {
+  font-size: 2rem;
+  margin: 0.5rem 0;
+  color: #4cd137;
+}
+
+.completion-content p {
+  color: #ccc;
+  font-size: 1.1rem;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.rotation-hint-text {
+  text-align: center;
+  margin-top: 0.5rem;
+  color: #888;
+  font-size: 0.85rem;
+}
