@@ -2,7 +2,7 @@ import { useRef, useEffect, useCallback, useState } from 'react';
 import './PuzzleBoard.css';
 
 /**
- * Canvas-based puzzle board with drag-and-drop.
+ * Canvas-based puzzle board with drag-and-drop, rotation, and hint support.
  */
 export default function PuzzleBoard({
   pieces,
@@ -12,8 +12,11 @@ export default function PuzzleBoard({
   cols,
   rows,
   onMovePiece,
+  onRotatePiece,
   showPreview,
   completed,
+  hintPiece,
+  rotationMode,
 }) {
   const canvasRef = useRef(null);
   const [dragging, setDragging] = useState(null);
@@ -57,11 +60,38 @@ export default function PuzzleBoard({
       ctx.globalAlpha = 1.0;
     }
 
+    // Draw hint highlight
+    if (hintPiece) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255, 193, 7, 0.9)';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([8, 4]);
+      ctx.strokeRect(hintPiece.correctX, hintPiece.correctY, pieceW, pieceH);
+      ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(255, 193, 7, 0.12)';
+      ctx.fillRect(hintPiece.correctX, hintPiece.correctY, pieceW, pieceH);
+      // Draw a small label
+      ctx.fillStyle = 'rgba(255, 193, 7, 0.85)';
+      ctx.font = `${Math.min(pieceW, pieceH) * 0.25}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('💡', hintPiece.correctX + pieceW / 2, hintPiece.correctY + pieceH / 2);
+      ctx.restore();
+    }
+
     const renderPiece = (context, piece, isDragged = false) => {
       const sx = piece.col * pieceW;
       const sy = piece.row * pieceH;
+      const rotation = piece.rotation || 0;
 
       context.save();
+
+      // Translate to piece center, rotate, translate back
+      const cx = piece.currentX + pieceW / 2;
+      const cy = piece.currentY + pieceH / 2;
+      context.translate(cx, cy);
+      context.rotate((rotation * Math.PI) / 180);
+      context.translate(-cx, -cy);
 
       // Clip region for the piece
       context.beginPath();
@@ -83,7 +113,12 @@ export default function PuzzleBoard({
 
       context.restore();
 
-      // Draw border
+      // Draw border (outside rotation transform for clean border)
+      context.save();
+      context.translate(cx, cy);
+      context.rotate((rotation * Math.PI) / 180);
+      context.translate(-cx, -cy);
+
       context.strokeStyle = piece.isPlaced
         ? 'rgba(76, 209, 55, 0.6)'
         : isDragged
@@ -94,11 +129,16 @@ export default function PuzzleBoard({
       context.roundRect(piece.currentX, piece.currentY, pieceW, pieceH, 3);
       context.stroke();
 
-      // Shadow for dragged piece
-      if (isDragged) {
-        context.shadowColor = 'rgba(108,99,255,0.5)';
-        context.shadowBlur = 15;
+      // Draw rotation indicator for rotated unplaced pieces
+      if (rotation !== 0 && !piece.isPlaced) {
+        context.fillStyle = 'rgba(255, 140, 0, 0.8)';
+        context.font = `${Math.min(pieceW, pieceH) * 0.18}px sans-serif`;
+        context.textAlign = 'right';
+        context.textBaseline = 'top';
+        context.fillText(`${rotation}°`, piece.currentX + pieceW - 3, piece.currentY + 3);
       }
+
+      context.restore();
     };
 
     const currentPieces = piecesRef.current;
@@ -116,7 +156,7 @@ export default function PuzzleBoard({
       const dp = currentPieces.find((p) => p.id === dragging.id);
       if (dp) renderPiece(ctx, dp, true);
     }
-  }, [image, imageWidth, imageHeight, cols, rows, pieceW, pieceH, showPreview, dragging]);
+  }, [image, imageWidth, imageHeight, cols, rows, pieceW, pieceH, showPreview, dragging, hintPiece]);
 
   useEffect(() => {
     draw();
@@ -185,6 +225,16 @@ export default function PuzzleBoard({
     setDragging(null);
   };
 
+  const handleContextMenu = (e) => {
+    e.preventDefault();
+    if (completed || rotationMode === 'none') return;
+    const coords = getCanvasCoords(e);
+    const piece = findPieceAtCoords(coords.x, coords.y);
+    if (piece) {
+      onRotatePiece(piece.id);
+    }
+  };
+
   return (
     <div className="puzzle-board-wrapper">
       <canvas
@@ -199,6 +249,7 @@ export default function PuzzleBoard({
         onTouchStart={handlePointerDown}
         onTouchMove={handlePointerMove}
         onTouchEnd={handlePointerUp}
+        onContextMenu={handleContextMenu}
       />
       {completed && (
         <div className="completion-overlay">
@@ -208,6 +259,9 @@ export default function PuzzleBoard({
             <p>Congratulations! You solved the puzzle!</p>
           </div>
         </div>
+      )}
+      {rotationMode !== 'none' && !completed && (
+        <p className="rotation-hint-text">Right-click a piece to rotate it</p>
       )}
     </div>
   );

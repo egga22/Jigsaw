@@ -10,8 +10,10 @@ export default function Toolbar({
   showPreview,
   onTogglePreview,
   onShuffle,
+  onHint,
   onReset,
   completed,
+  rotationMode,
 }) {
   return (
     <div className="toolbar">
@@ -24,6 +26,12 @@ export default function Toolbar({
           <span className="stat-icon">🔄</span>
           <span className="stat-value">{moveCount} moves</span>
         </div>
+        {rotationMode !== 'none' && (
+          <div className="stat">
+            <span className="stat-icon">🔀</span>
+            <span className="stat-value">{rotationMode}° rotation</span>
+          </div>
+        )}
       </div>
 
       <div className="toolbar-actions">
@@ -33,6 +41,14 @@ export default function Toolbar({
           title="Toggle image preview"
         >
           👁️ Preview
+        </button>
+        <button
+          className="toolbar-btn hint-btn"
+          onClick={onHint}
+          disabled={completed}
+          title="Show a hint for one piece"
+        >
+          💡 Hint
         </button>
         <button
           className="toolbar-btn"

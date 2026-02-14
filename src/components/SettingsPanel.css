@@ -68,6 +68,96 @@
   font-size: 1.2rem;
 }
 
+.custom-grid-group {
+  padding: 1rem;
+  border: 2px solid #444;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.custom-grid-inputs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.grid-input-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.grid-input-row label {
+  font-size: 0.8rem;
+  color: #999;
+}
+
+.grid-input {
+  width: 70px;
+  padding: 0.5rem;
+  text-align: center;
+  font-size: 1.1rem;
+  border: 2px solid #555;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #eee;
+}
+
+.grid-input:focus {
+  outline: none;
+  border-color: #6c63ff;
+}
+
+.grid-x {
+  font-size: 1.3rem;
+  color: #888;
+  margin-top: 1rem;
+}
+
+.grid-summary {
+  margin-top: 0.5rem;
+  color: #6c63ff;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.rotation-options {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.rotation-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.2rem;
+  border: 2px solid #444;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #ddd;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.rotation-btn:hover {
+  border-color: #6c63ff;
+  background: rgba(108, 99, 255, 0.1);
+}
+
+.rotation-btn.active {
+  border-color: #6c63ff;
+  background: rgba(108, 99, 255, 0.2);
+  box-shadow: 0 0 12px rgba(108, 99, 255, 0.3);
+}
+
+.rot-icon {
+  font-size: 1.1rem;
+}
+
 .start-btn {
   padding: 1rem 2.5rem;
   font-size: 1.2rem;

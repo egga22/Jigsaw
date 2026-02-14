@@ -16,9 +16,22 @@ export default function App() {
   const [imageSrc, setImageSrc] = useState(null);
   const [imageObj, setImageObj] = useState(null);
   const [difficulty, setDifficulty] = useState('medium');
+  const [customCols, setCustomCols] = useState(6);
+  const [customRows, setCustomRows] = useState(4);
+  const [rotationMode, setRotationMode] = useState('none');
   const [showPreview, setShowPreview] = useState(false);
+  const [hintPiece, setHintPiece] = useState(null);
 
-  const settings = getDifficultySettings(difficulty);
+  const getSettings = useCallback(() => {
+    if (difficulty === 'custom') {
+      const total = customCols * customRows;
+      const snapThreshold = total <= 12 ? 40 : total <= 30 ? 30 : total <= 60 ? 20 : 15;
+      return { cols: customCols, rows: customRows, snapThreshold };
+    }
+    return getDifficultySettings(difficulty);
+  }, [difficulty, customCols, customRows]);
+
+  const settings = getSettings();
   const timer = useTimer();
 
   const puzzle = usePuzzle({
@@ -27,6 +40,7 @@ export default function App() {
     imageWidth: PUZZLE_WIDTH,
     imageHeight: PUZZLE_HEIGHT,
     snapThreshold: settings.snapThreshold,
+    rotationMode,
     onComplete: () => timer.stop(),
     onFirstMove: () => timer.start(),
   });
@@ -79,16 +93,26 @@ export default function App() {
       PUZZLE_WIDTH,
       PUZZLE_HEIGHT,
       pw,
-      ph
+      ph,
+      rotationMode
     );
     // Re-apply shuffled positions through movePiece
     reshuffled.forEach((p) => {
       puzzle.movePiece(p.id, p.currentX, p.currentY);
     });
-  }, [puzzle, settings]);
+  }, [puzzle, settings, rotationMode]);
+
+  const handleHint = useCallback(() => {
+    const piece = puzzle.getHintPiece();
+    if (!piece) return;
+    setHintPiece(piece);
+    // Auto-clear the hint after 3 seconds
+    setTimeout(() => setHintPiece(null), 3000);
+  }, [puzzle]);
 
   const handleReset = useCallback(() => {
     timer.reset();
+    setHintPiece(null);
     setScreen('upload');
     setImageSrc(null);
     setImageObj(null);
@@ -110,6 +134,12 @@ export default function App() {
           <SettingsPanel
             difficulty={difficulty}
             onDifficultyChange={setDifficulty}
+            customCols={customCols}
+            customRows={customRows}
+            onCustomColsChange={setCustomCols}
+            onCustomRowsChange={setCustomRows}
+            rotationMode={rotationMode}
+            onRotationModeChange={setRotationMode}
             onStart={handleStart}
             imageSrc={imageSrc}
           />
@@ -123,8 +153,10 @@ export default function App() {
               showPreview={showPreview}
               onTogglePreview={() => setShowPreview((v) => !v)}
               onShuffle={handleShuffle}
+              onHint={handleHint}
               onReset={handleReset}
               completed={puzzle.completed}
+              rotationMode={rotationMode}
             />
             <div className="board-container">
               <PuzzleBoard
@@ -135,8 +167,11 @@ export default function App() {
                 cols={settings.cols}
                 rows={settings.rows}
                 onMovePiece={puzzle.movePiece}
+                onRotatePiece={puzzle.rotatePiece}
                 showPreview={showPreview}
                 completed={puzzle.completed}
+                hintPiece={hintPiece}
+                rotationMode={rotationMode}
               />
             </div>
             {puzzle.completed && (

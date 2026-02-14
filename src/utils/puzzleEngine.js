@@ -1,10 +1,10 @@
 /**
- * Core puzzle engine: generates pieces, handles snapping, and checks completion.
+ * Core puzzle engine: generates pieces, handles snapping, rotation, and checks completion.
  */
 
 /**
  * Generate jigsaw puzzle piece definitions.
- * Each piece has: id, row, col, correctX, correctY, currentX, currentY, width, height, isPlaced
+ * Each piece has: id, row, col, correctX, correctY, currentX, currentY, width, height, rotation, isPlaced
  *
  * @param {number} cols - Number of columns
  * @param {number} rows - Number of rows
@@ -29,6 +29,7 @@ export function generatePieces(cols, rows, imageWidth, imageHeight) {
         currentY: 0,
         width: pieceW,
         height: pieceH,
+        rotation: 0,
         isPlaced: false,
       });
     }
@@ -45,25 +46,29 @@ export function generatePieces(cols, rows, imageWidth, imageHeight) {
  * @param {number} areaHeight - Available height for scattering
  * @param {number} pieceW - Piece width
  * @param {number} pieceH - Piece height
- * @returns {Array} Shuffled pieces with randomized currentX/currentY
+ * @param {'none'|'90'|'180'} rotationMode - Rotation mode
+ * @returns {Array} Shuffled pieces with randomized currentX/currentY and rotation
  */
-export function shufflePieces(pieces, areaWidth, areaHeight, pieceW, pieceH) {
+export function shufflePieces(pieces, areaWidth, areaHeight, pieceW, pieceH, rotationMode = 'none') {
   return pieces.map((piece) => ({
     ...piece,
     currentX: Math.random() * Math.max(0, areaWidth - pieceW),
     currentY: Math.random() * Math.max(0, areaHeight - pieceH),
+    rotation: getRandomRotation(rotationMode),
     isPlaced: false,
   }));
 }
 
 /**
  * Check if a piece is close enough to its correct position to snap.
+ * Also checks that the piece rotation is correct (0°).
  *
  * @param {Object} piece - The piece object
  * @param {number} threshold - Snap distance threshold in pixels
  * @returns {boolean}
  */
 export function isNearCorrectPosition(piece, threshold = 30) {
+  if (piece.rotation !== 0) return false;
   const dx = Math.abs(piece.currentX - piece.correctX);
   const dy = Math.abs(piece.currentY - piece.correctY);
   return dx < threshold && dy < threshold;
@@ -80,6 +85,7 @@ export function snapPiece(piece) {
     ...piece,
     currentX: piece.correctX,
     currentY: piece.correctY,
+    rotation: 0,
     isPlaced: true,
   };
 }
@@ -125,4 +131,63 @@ export function formatTime(totalSeconds) {
   const mins = Math.floor(totalSeconds / 60);
   const secs = totalSeconds % 60;
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+/**
+ * Get a random rotation based on the rotation mode.
+ *
+ * @param {'none'|'90'|'180'} mode
+ * @returns {number} Rotation in degrees (0, 90, 180, or 270)
+ */
+export function getRandomRotation(mode) {
+  if (mode === '90') {
+    const options = [0, 90, 180, 270];
+    return options[Math.floor(Math.random() * options.length)];
+  }
+  if (mode === '180') {
+    const options = [0, 180];
+    return options[Math.floor(Math.random() * options.length)];
+  }
+  return 0;
+}
+
+/**
+ * Rotate a piece by the given step (in degrees). Wraps around at 360.
+ *
+ * @param {Object} piece - The piece object
+ * @param {number} step - Rotation step in degrees (e.g. 90)
+ * @returns {Object} Updated piece with new rotation
+ */
+export function rotatePiece(piece, step = 90) {
+  return {
+    ...piece,
+    rotation: (piece.rotation + step) % 360,
+  };
+}
+
+/**
+ * Compute cols and rows from a desired total piece count, fitting the given aspect ratio.
+ *
+ * @param {number} totalPieces - Desired total number of pieces
+ * @param {number} aspectRatio - Image width / height
+ * @returns {{ cols: number, rows: number }}
+ */
+export function getGridFromPieceCount(totalPieces, aspectRatio) {
+  let bestCols = 1;
+  let bestRows = totalPieces;
+  let bestDiff = Infinity;
+
+  for (let r = 1; r <= totalPieces; r++) {
+    const c = Math.round(totalPieces / r);
+    if (c < 1) continue;
+    const cellAspect = (c / r);
+    const diff = Math.abs(cellAspect - aspectRatio);
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      bestCols = c;
+      bestRows = r;
+    }
+  }
+
+  return { cols: Math.max(1, bestCols), rows: Math.max(1, bestRows) };
 }

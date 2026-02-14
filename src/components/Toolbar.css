@@ -65,3 +65,8 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+.toolbar-btn.hint-btn:hover:not(:disabled) {
+  background: rgba(255, 193, 7, 0.2);
+  border-color: #ffc107;
+}

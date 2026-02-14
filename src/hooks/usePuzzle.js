@@ -5,6 +5,7 @@ import {
   isNearCorrectPosition,
   snapPiece,
   isPuzzleComplete,
+  rotatePiece as rotatePieceUtil,
 } from '../utils/puzzleEngine';
 
 /**
@@ -16,10 +17,11 @@ import {
  * @param {number} params.imageWidth
  * @param {number} params.imageHeight
  * @param {number} params.snapThreshold
+ * @param {'none'|'90'|'180'} params.rotationMode
  * @param {Function} params.onComplete - Called when puzzle is finished
  * @param {Function} params.onFirstMove - Called on the first move
  */
-export function usePuzzle({ cols, rows, imageWidth, imageHeight, snapThreshold, onComplete, onFirstMove }) {
+export function usePuzzle({ cols, rows, imageWidth, imageHeight, snapThreshold, rotationMode = 'none', onComplete, onFirstMove }) {
   const [pieces, setPieces] = useState([]);
   const [moveCount, setMoveCount] = useState(0);
   const [completed, setCompleted] = useState(false);
@@ -32,13 +34,14 @@ export function usePuzzle({ cols, rows, imageWidth, imageHeight, snapThreshold, 
       imageWidth,
       imageHeight,
       imageWidth / cols,
-      imageHeight / rows
+      imageHeight / rows,
+      rotationMode
     );
     setPieces(shuffled);
     setMoveCount(0);
     setCompleted(false);
     setHasStarted(false);
-  }, [cols, rows, imageWidth, imageHeight]);
+  }, [cols, rows, imageWidth, imageHeight, rotationMode]);
 
   const movePiece = useCallback(
     (pieceId, newX, newY) => {
@@ -72,11 +75,53 @@ export function usePuzzle({ cols, rows, imageWidth, imageHeight, snapThreshold, 
     [completed, hasStarted, snapThreshold, onComplete, onFirstMove]
   );
 
+  const rotatePiece = useCallback(
+    (pieceId) => {
+      if (completed) return;
+
+      if (!hasStarted) {
+        setHasStarted(true);
+        onFirstMove?.();
+      }
+
+      const step = rotationMode === '180' ? 180 : 90;
+
+      setPieces((prev) => {
+        const updated = prev.map((p) => {
+          if (p.id !== pieceId || p.isPlaced) return p;
+          const rotated = rotatePieceUtil(p, step);
+          if (isNearCorrectPosition(rotated, snapThreshold)) {
+            return snapPiece(rotated);
+          }
+          return rotated;
+        });
+
+        if (!completed && isPuzzleComplete(updated)) {
+          setCompleted(true);
+          onComplete?.();
+        }
+
+        return updated;
+      });
+
+      setMoveCount((c) => c + 1);
+    },
+    [completed, hasStarted, rotationMode, snapThreshold, onComplete, onFirstMove]
+  );
+
+  const getHintPiece = useCallback(() => {
+    const unplaced = pieces.filter((p) => !p.isPlaced);
+    if (unplaced.length === 0) return null;
+    return unplaced[Math.floor(Math.random() * unplaced.length)];
+  }, [pieces]);
+
   return {
     pieces,
     moveCount,
     completed,
     initPuzzle,
     movePiece,
+    rotatePiece,
+    getHintPiece,
   };
 }
