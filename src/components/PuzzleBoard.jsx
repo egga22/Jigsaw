@@ -83,22 +83,21 @@ export default function PuzzleBoard({
       const sx = piece.col * pieceW;
       const sy = piece.row * pieceH;
       const rotation = piece.rotation || 0;
+      const cx = piece.currentX + pieceW / 2;
+      const cy = piece.currentY + pieceH / 2;
 
       context.save();
 
-      // Translate to piece center, rotate, translate back
-      const cx = piece.currentX + pieceW / 2;
-      const cy = piece.currentY + pieceH / 2;
+      // Apply rotation transform once for the entire piece
       context.translate(cx, cy);
       context.rotate((rotation * Math.PI) / 180);
       context.translate(-cx, -cy);
 
-      // Clip region for the piece
+      // Clip region and draw image
+      context.save();
       context.beginPath();
       context.roundRect(piece.currentX, piece.currentY, pieceW, pieceH, 3);
       context.clip();
-
-      // Draw the image portion
       context.drawImage(
         image,
         sx,
@@ -110,15 +109,9 @@ export default function PuzzleBoard({
         pieceW,
         pieceH
       );
-
       context.restore();
 
-      // Draw border (outside rotation transform for clean border)
-      context.save();
-      context.translate(cx, cy);
-      context.rotate((rotation * Math.PI) / 180);
-      context.translate(-cx, -cy);
-
+      // Draw border
       context.strokeStyle = piece.isPlaced
         ? 'rgba(76, 209, 55, 0.6)'
         : isDragged

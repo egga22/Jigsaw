@@ -21,6 +21,7 @@ export default function App() {
   const [rotationMode, setRotationMode] = useState('none');
   const [showPreview, setShowPreview] = useState(false);
   const [hintPiece, setHintPiece] = useState(null);
+  const hintTimeoutRef = useRef(null);
 
   const getSettings = useCallback(() => {
     if (difficulty === 'custom') {
@@ -105,12 +106,14 @@ export default function App() {
   const handleHint = useCallback(() => {
     const piece = puzzle.getHintPiece();
     if (!piece) return;
+    clearTimeout(hintTimeoutRef.current);
     setHintPiece(piece);
     // Auto-clear the hint after 3 seconds
-    setTimeout(() => setHintPiece(null), 3000);
+    hintTimeoutRef.current = setTimeout(() => setHintPiece(null), 3000);
   }, [puzzle]);
 
   const handleReset = useCallback(() => {
+    clearTimeout(hintTimeoutRef.current);
     timer.reset();
     setHintPiece(null);
     setScreen('upload');
